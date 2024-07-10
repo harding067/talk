@@ -1,0 +1,66 @@
+const loginIdValidator = new FieldValidator("txtLoginId", async (val) => {
+  if (!val) {
+    return "请填写账号";
+  }
+  const resp = await API.exists(val);
+  if (resp.data) return "该账号已被占用，请重新选择一个账号名";
+});
+
+const nicknameValidator = new FieldValidator("txtNickname", (val) => {
+  if (!val) {
+    return "请填写昵称";
+  }
+});
+
+const loginPwdValidator = new FieldValidator("txtLoginPwd", (val) => {
+  if (!val) {
+    return "请填写密码";
+  }
+});
+
+const loginPwdConfirmValidator = new FieldValidator(
+  "txtLoginPwdConfirm",
+  (val) => {
+    if (!val) {
+      return "请填写确认密码";
+    }
+    if (val !== loginPwdValidator.input.value) {
+      return "两次密码不一致";
+    }
+  }
+);
+
+const form = $(".user-form");
+form.addEventListener(
+  "submit",
+  async (e) => {
+    // 阻止表单默认行为
+    e.preventDefault();
+
+    const result = await FieldValidator.validate(
+      loginIdValidator,
+      nicknameValidator,
+      loginPwdValidator,
+      loginPwdConfirmValidator
+    );
+    // 验证未通过
+    if (!result) return;
+
+    //   const data = {
+    //       loginId: loginIdValidator.input.value,
+    //       nickname: nicknameValidator.input.value,
+    //       loginPwd: loginPwdValidator.input.value
+    //   }
+    //   console.log(data);
+
+      const formData = new FormData(form); // 传入表单DOM，得到一个表单数据对象
+      const requestParam = Object.fromEntries(formData.entries());
+
+      const resp = await API.reg(requestParam);
+      if (resp.code === 0) {
+          alert("注册成功，点击确定，跳转到登录页");
+          location.href = "./login.html";
+      }
+  },
+  false
+);
